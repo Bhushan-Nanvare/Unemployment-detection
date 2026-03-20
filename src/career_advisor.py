@@ -36,14 +36,14 @@ class CareerAdvisor:
             stress = s["Stress_Score"]
             
             # Logic for categorization
-            # Growth: High Resilience (>60) OR Low Stress (<40)
-            if resilience > 60 or stress < 40:
+            # Growth: High Resilience (>60) AND Moderate-to-Low Stress (<50)
+            if resilience > 60 and stress < 50:
                 advice["growth_sectors"].append(name)
                 # Add top 2 skills for brevity
                 skills = CareerAdvisor.SECTOR_SKILLS.get(name, [])
                 advice["recommended_skills"].extend(skills[:3])
                 
-            elif stress > 60:
+            elif stress > 65:
                 advice["risk_sectors"].append(name)
             
         # Deduplicate skills

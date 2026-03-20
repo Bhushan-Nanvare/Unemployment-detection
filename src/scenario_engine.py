@@ -2,11 +2,11 @@
 scenario_engine.py
 
 Purpose:
-    Simulate alternative unemployment futures under
-    explicit economic scenarios.
+    Simulate alternative unemployment futures under explicit economic scenarios.
+    This is counterfactual simulation, NOT prediction.
 
-This is NOT prediction.
-This is counterfactual simulation.
+Shock model: initial magnitude + decay. Shocks do NOT permanently distort
+the long-term baseline; they overlay and fade.
 """
 
 import pandas as pd
@@ -22,35 +22,26 @@ class ScenarioEngine:
     ):
         """
         Parameters:
-        - shock_intensity: % increase during shock (e.g. 0.3 = +30%)
-        - shock_duration: number of years shock lasts
-        - recovery_rate: speed of recovery (0.1–0.5 realistic)
+        - shock_intensity: initial magnitude (e.g. 0.3 = +30% spike in year 0)
+        - shock_duration: legacy; decay is governed by recovery_rate
+        - recovery_rate: speed of return to baseline; policy support increases this
         """
         self.shock_intensity = shock_intensity
         self.shock_duration = shock_duration
         self.recovery_rate = recovery_rate
+        self._decay_rate = max(0.15, 1.0 - recovery_rate)
 
-    def simulate(
-        self,
-        baseline_forecast: pd.DataFrame
-    ) -> pd.DataFrame:
+    def simulate(self, baseline_forecast: pd.DataFrame) -> pd.DataFrame:
         """
-        Simulates scenario-based unemployment path.
+        Scenario = baseline + decaying shock overlay. Long-term → baseline.
         """
         df = baseline_forecast.copy()
-        df["Scenario_Unemployment"] = df["Predicted_Unemployment"]
+        base_values = df["Predicted_Unemployment"].values
+        initial_magnitude = float(base_values[0]) * self.shock_intensity
 
-        # Apply shock
-        for i in range(min(self.shock_duration, len(df))):
-            df.loc[i, "Scenario_Unemployment"] *= (1 + self.shock_intensity)
-
-        # Recovery phase
-        for i in range(self.shock_duration, len(df)):
-            prev = df.loc[i - 1, "Scenario_Unemployment"]
-            baseline = df.loc[i, "Predicted_Unemployment"]
-
-            df.loc[i, "Scenario_Unemployment"] = (
-                prev - self.recovery_rate * (prev - baseline)
-            )
-
+        scenario_values = []
+        for i in range(len(df)):
+            shock_effect = initial_magnitude * (self._decay_rate ** i)
+            scenario_values.append(max(0.0, base_values[i] + shock_effect))
+        df["Scenario_Unemployment"] = scenario_values
         return df

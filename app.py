@@ -1,420 +1,261 @@
+"""
+Home Page — Unemployment Intelligence Platform
+Premium dark glassmorphism landing experience.
+"""
 import streamlit as st
 import requests
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
-from streamlit_lottie import st_lottie
+from src.ui_helpers import DARK_CSS, render_kpi_card, render_badge, plotly_dark_layout, API_BASE_URL
 
-# =========================
-# Page Config & Custom CSS
-# =========================
 st.set_page_config(
-    page_title="Labor Market Intelligence Platform",
-    page_icon="🧠",
+    page_title="Unemployment Intelligence Platform",
+    page_icon="📈",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed",
 )
 
-# Modern UI - Custom CSS
+st.markdown(DARK_CSS, unsafe_allow_html=True)
+
+# ─── Extra landing-page CSS ────────────────────────────────────────────────────
 st.markdown("""
 <style>
-    /* Global Font & Background */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-    
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
-    }
-    
-    /* Card Styling */
-    .metric-card {
-        background-color: #ffffff;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        border-left: 5px solid #4F8BF9;
-        margin-bottom: 10px;
-    }
-    
-    /* Headers */
-    h1, h2, h3 {
-        color: #1E293B;
-        font-weight: 700;
-    }
-    
-    /* Timeline Styling */
-    .timeline-item {
-        padding: 15px;
-        border-left: 2px solid #E2E8F0;
-        margin-left: 10px;
-        position: relative;
-    }
-    .timeline-item::before {
-        content: '';
-        position: absolute;
-        left: -6px;
-        top: 20px;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: #3B82F6;
-    }
-    .timeline-year {
-        font-weight: bold;
-        color: #3B82F6;
-    }
-    
-    /* Custom Badge */
-    .badge {
-        padding: 4px 8px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
-    .badge-high { background-color: #FEE2E2; color: #991B1B; }
-    .badge-medium { background-color: #FEF3C7; color: #92400E; }
-    .badge-low { background-color: #D1FAE5; color: #065F46; }
-
+.hero-wrap {
+    text-align: center;
+    padding: 4rem 2rem 3rem;
+}
+.hero-super {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(99,102,241,0.12);
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 999px;
+    padding: 0.35rem 1rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #818cf8 !important;
+    margin-bottom: 1.5rem;
+}
+.hero-main-title {
+    font-size: 4rem !important;
+    font-weight: 900 !important;
+    line-height: 1.1 !important;
+    background: linear-gradient(135deg, #f1f5f9 0%, #818cf8 50%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.2rem !important;
+}
+.hero-desc {
+    font-size: 1.15rem !important;
+    color: #94a3b8 !important;
+    max-width: 600px;
+    margin: 0 auto 2.5rem !important;
+    line-height: 1.7;
+}
+.nav-link-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 1.8rem;
+    text-align: center;
+    transition: all 0.25s ease;
+    cursor: pointer;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    position: relative;
+    overflow: hidden;
+}
+.nav-link-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+}
+.nav-link-card:hover {
+    background: rgba(99,102,241,0.1);
+    border-color: rgba(99,102,241,0.3);
+    transform: translateY(-5px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(99,102,241,0.2);
+}
+.nav-icon { font-size: 2.4rem; }
+.nav-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #e2e8f0 !important;
+}
+.nav-desc {
+    font-size: 0.82rem;
+    color: #64748b !important;
+    line-height: 1.4;
+}
+.status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    padding: 0.9rem 2rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 999px;
+    margin: 0 auto 2.5rem;
+    max-width: 600px;
+}
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: #64748b !important;
+    font-weight: 500;
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot-green { background: #10b981; box-shadow: 0 0 6px #10b981; }
+.dot-red   { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+.dot-yellow { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
 </style>
 """, unsafe_allow_html=True)
 
-# Helper: Load Lottie Animation
-@st.cache_data
-def load_lottieurl(url: str):
-    r = requests.get(url)
-    if r.status_code != 200:
-        return None
-    return r.json()
+# ─── API health check ──────────────────────────────────────────────────────────
+@st.cache_data(ttl=30)
+def check_api_health():
+    try:
+        r = requests.get(f"{API_BASE_URL}/validate", timeout=4)
+        return r.status_code == 200, None
+    except Exception as e:
+        return False, str(e)
 
-# Load Animations
-lottie_analytics = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_V9t630.json")
-lottie_robot = load_lottieurl("https://assets9.lottiefiles.com/packages/lf20_sweb47f4.json")
-lottie_warning = load_lottieurl("https://assets10.lottiefiles.com/packages/lf20_Tkwjw8.json")
+@st.cache_data(ttl=60)
+def get_baseline_preview():
+    try:
+        payload = {"shock_intensity": 0.0, "shock_duration": 0, "recovery_rate": 0.0, "forecast_horizon": 6}
+        r = requests.post(f"{API_BASE_URL}/simulate", json=payload, timeout=15)
+        if r.status_code == 200:
+            return r.json()
+    except:
+        pass
+    return None
 
-API_URL = "http://127.0.0.1:8000/simulate"
+api_ok, api_err = check_api_health()
+baseline_preview = get_baseline_preview()
 
-# =========================
-# Header Section
-# =========================
-col_head1, col_head2 = st.columns([3, 1])
-with col_head1:
-    st.title("🧠 Labor Market Intelligence Platform")
-    st.markdown("""
-    **Next-Gen Scenario Analysis & Decision Support System**  
-    *Model economic shocks, predict sector resilience, and generate policy insights using rule-based AI.*
-    """)
-with col_head2:
-    if lottie_analytics:
-        st_lottie(lottie_analytics, height=150, key="header_anim")
+# ─── Hero Section ─────────────────────────────────────────────────────────────
+st.markdown("""
+<div class="hero-wrap">
+    <div class="hero-super">🌐 Economic Intelligence Platform v2.0</div>
+    <div class="hero-main-title">Unemployment<br>Intelligence Platform</div>
+    <p class="hero-desc">
+        Scenario-based forecasting, shock simulation, and policy analysis — 
+        built for economists, policymakers, and data scientists.
+    </p>
+</div>
+""", unsafe_allow_html=True)
 
-st.divider()
+# ─── Status Bar ───────────────────────────────────────────────────────────────
+api_dot = "dot-green" if api_ok else "dot-red"
+api_label = "API Online" if api_ok else "API Offline"
+st.markdown(f"""
+<div class="status-bar">
+    <div class="status-item"><span class="dot {api_dot}"></span>{api_label}</div>
+    <div class="status-item"><span class="dot dot-green"></span>India Dataset Loaded</div>
+    <div class="status-item"><span class="dot dot-green"></span>World Bank Data</div>
+    <div class="status-item"><span class="dot dot-yellow"></span>Live Forecasting</div>
+</div>
+""", unsafe_allow_html=True)
 
-# =========================
-# Sidebar Controls
-# =========================
-with st.sidebar:
-    st.header("⚙️ Simulation Controls")
-    
-    # Global Settings
-    forecast_horizon = st.slider("Forecast Horizon (Years)", 3, 10, 6)
-    
-    st.markdown("---")
-    
-    def scenario_controls(label, preset_index):
-        st.subheader(f"📌 {label}")
-        
-        SCENARIO_PRESETS = [
-            "Baseline (Natural Flow)", "Severe Shock", "Mild Shock", "Policy Support", 
-            "COVID-like Shock (2020)", "Global Recession"
-        ]
-        
-        preset = st.selectbox(f"Select Preset", SCENARIO_PRESETS, index=preset_index, key=f"{label}_preset")
-        
-        # Preset Logic
-        if preset == "Baseline (Natural Flow)": si, sd, rr = 0.0, 0, 0.5
-        elif preset == "Severe Shock": si, sd, rr = 0.35, 2, 0.20
-        elif preset == "Mild Shock": si, sd, rr = 0.15, 1, 0.40
-        elif preset == "Policy Support": si, sd, rr = 0.35, 2, 0.45
-        elif preset == "COVID-like Shock (2020)": si, sd, rr = 0.40, 3, 0.30
-        else: si, sd, rr = 0.25, 2, 0.25
-        
-        with st.expander("Advanced Parameters", expanded=False):
-            shock_intensity = st.slider(f"Shock Intensity", 0.0, 0.6, si, 0.05, key=f"{label}_si")
-            shock_duration = st.slider(f"Duration (Years)", 1, 4, sd, key=f"{label}_sd")
-            recovery_rate = st.slider(f"Recovery Rate", 0.1, 0.6, rr, 0.05, key=f"{label}_rr")
-        
-        POLICY_OPTIONS = ["None", "Youth Employment Boost", "SME Support Package", "Rural Job Guarantee"]
-        policy_name = st.selectbox(f"Apply Policy", POLICY_OPTIONS, index=0, key=f"{label}_policy")
-        
-        return shock_intensity, shock_duration, recovery_rate, policy_name
+if not api_ok:
+    st.warning(f"⚠️ FastAPI backend is not running. Start it with: `uvicorn src.api:app --reload`  \nError: {api_err}")
 
-    si_a, sd_a, rr_a, policy_a = scenario_controls("Scenario A", 0)
-    st.markdown("---")
-    si_b, sd_b, rr_b, policy_b = scenario_controls("Scenario B", 1)
-    
-    st.markdown("### ℹ️ About")
-    st.info("This system uses a structural labor market model with rule-based AI for prescriptive analytics.")
+# ─── KPI Row ──────────────────────────────────────────────────────────────────
+if baseline_preview:
+    baseline_df = pd.DataFrame(baseline_preview.get("baseline", []))
+    if not baseline_df.empty:
+        col1, col2, col3, col4 = st.columns(4)
+        peak = round(baseline_df["Predicted_Unemployment"].max(), 2)
+        peak_year = int(baseline_df.loc[baseline_df["Predicted_Unemployment"].idxmax(), "Year"])
+        current = round(baseline_df["Predicted_Unemployment"].iloc[0], 2)
+        end_val = round(baseline_df["Predicted_Unemployment"].iloc[-1], 2)
 
-# =========================
-# Main Execution
-# =========================
+        with col1:
+            st.markdown(render_kpi_card("📊", "Current Rate", f"{current}%", delta_type="neutral"), unsafe_allow_html=True)
+        with col2:
+            st.markdown(render_kpi_card("🎯", "Baseline Peak", f"{peak}%", f"in {peak_year}", "up"), unsafe_allow_html=True)
+        with col3:
+            delta_6y = round(end_val - current, 2)
+            dtype = "up" if delta_6y > 0 else "down"
+            st.markdown(render_kpi_card("📉", "6-Year Outlook", f"{end_val}%", f"{'▲' if delta_6y>0 else '▼'} {abs(delta_6y)}pp", dtype), unsafe_allow_html=True)
+        with col4:
+            indices = baseline_preview.get("indices", {})
+            ew = indices.get("early_warning", "🟢 Stable")
+            st.markdown(render_kpi_card("🚦", "Risk Status", ew.split(" ", 1)[-1] if " " in ew else ew, delta_type="neutral"), unsafe_allow_html=True)
 
-# Helper to fetch data
-def fetch_scenario(si, sd, rr, pol):
-    payload = {
-        "shock_intensity": si,
-        "shock_duration": sd,
-        "recovery_rate": rr,
-        "forecast_horizon": forecast_horizon,
-        "policy_name": pol if pol != "None" else None,
-    }
-    res = requests.post(API_URL, json=payload)
-    res.raise_for_status()
-    return res.json()
+        st.markdown("<br>", unsafe_allow_html=True)
 
-def fetch_baseline():
-    return fetch_scenario(0.0, 0, 0.0, "None")
+        # Mini sparkline chart
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=baseline_df["Year"],
+            y=baseline_df["Predicted_Unemployment"],
+            mode="lines",
+            fill="tozeroy",
+            fillcolor="rgba(99,102,241,0.08)",
+            line=dict(color="#6366f1", width=3),
+            name="Baseline Forecast",
+        ))
+        fig.update_layout(**plotly_dark_layout(height=200))
+        fig.update_layout(
+            showlegend=False,
+            margin=dict(l=20, r=20, t=10, b=20),
+        )
+        fig.update_xaxes(showgrid=False, showticklabels=True, linecolor="rgba(255,255,255,0.05)")
+        fig.update_yaxes(showgrid=True, gridcolor="rgba(255,255,255,0.04)", title_text="Unemployment %")
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        st.markdown("<div style='color:#94a3b8; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:0.5rem;'>📈 BASELINE FORECAST PREVIEW</div>", unsafe_allow_html=True)
+        st.plotly_chart(fig, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-# Run Simulation
-try:
-    with st.spinner("Running Advanced Simulation Models..."):
-        baseline_data = fetch_baseline()
-        scen_a_data = fetch_scenario(si_a, sd_a, rr_a, policy_a)
-        scen_b_data = fetch_scenario(si_b, sd_b, rr_b, policy_b)
+# ─── Navigation Cards ─────────────────────────────────────────────────────────
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("<div style='text-align:center; font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:#6366f1; margin-bottom:1.5rem;'>↓ EXPLORE THE PLATFORM</div>", unsafe_allow_html=True)
 
-    # DataFrames
-    baseline_df = pd.DataFrame(baseline_data["baseline"])
-    scen_a_df = pd.DataFrame(scen_a_data["scenario"])
-    scen_b_df = pd.DataFrame(scen_b_data["scenario"])
-    
-    # Indices
-    idx_a = scen_a_data.get("indices", {})
-    idx_b = scen_b_data.get("indices", {})
+pages = [
+    ("📊", "Overview Dashboard", "Live KPIs, forecast trajectories & historical event overlays", "pages/1_Overview.py"),
+    ("🧪", "Scenario Simulator", "Design & compare two economic shock scenarios", "pages/2_Simulator.py"),
+    ("🏭", "Sector Analysis", "Heatmap, radar chart & sector resilience breakdown", "pages/3_Sector_Analysis.py"),
+    ("💼", "Career Lab", "Skill demand, growth sectors & career path guidance", "pages/4_Career_Lab.py"),
+    ("🤖", "AI Insights", "AI-generated narratives & story-mode timeline", "pages/5_AI_Insights.py"),
+    ("🔬", "Model Validation", "Backtest accuracy, R² score & reliability metrics", "pages/6_Model_Validation.py"),
+]
 
-    # =========================
-    # 1. Top-Level Metrics (Modern Cards)
-    # =========================
-    st.markdown("### 📊 Executive Summary")
-    
-    col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-    
-    with col_m1:
+col_grid = st.columns(3)
+for i, (icon, title, desc, path) in enumerate(pages):
+    with col_grid[i % 3]:
         st.markdown(f"""
-        <div class="metric-card">
-            <h3 style="margin:0; font-size:1rem; color:#64748B;">📉 Baseline (Natural)</h3>
-            <h2 style="margin:0; font-size:2rem; color:#1E293B;">{round(baseline_df['Predicted_Unemployment'].max(), 2)}%</h2>
-            <p style="margin:0; font-size:0.8rem; color:#64748B;">Peak in {baseline_df.loc[baseline_df['Predicted_Unemployment'].idxmax(), 'Year']}</p>
+        <div class="nav-link-card">
+            <div class="nav-icon">{icon}</div>
+            <div class="nav-title">{title}</div>
+            <div class="nav-desc">{desc}</div>
         </div>
         """, unsafe_allow_html=True)
-    with col_m2:
-        delta_a = round(scen_a_df['Scenario_Unemployment'].max() - baseline_df['Predicted_Unemployment'].max(), 2)
-        st.metric("Scenario A Peak", f"{round(scen_a_df['Scenario_Unemployment'].max(), 2)}%", delta=f"{delta_a}%", delta_color="inverse")
-    with col_m3:
-        delta_b = round(scen_b_df['Scenario_Unemployment'].max() - baseline_df['Predicted_Unemployment'].max(), 2)
-        st.metric("Scenario B Peak", f"{round(scen_b_df['Scenario_Unemployment'].max(), 2)}%", delta=f"{delta_b}%", delta_color="inverse")
-    with col_m4:
-        st.metric("Forecast Horizon", f"{forecast_horizon} Years")
+        # Use a hidden/small page link button below the card
+        st.page_link(path, label=f"Go to {title}", use_container_width=True)
+        if i % 3 != 2:
+            st.markdown("")
 
-    # =========================
-    # 2. Interactive Comparison Chart (Plotly)
-    # =========================
-    st.markdown("### 📈 Scenario Trajectory Comparison")
-    
-    # Combined Plot with Plotly
-    fig_main = go.Figure()
-    
-    # Baseline (Natural Flow)
-    fig_main.add_trace(go.Scatter(
-        x=baseline_df['Year'], 
-        y=baseline_df['Predicted_Unemployment'],
-        mode='lines',
-        name='Baseline (Natural Flow)',
-        line=dict(color='#94A3B8', width=3, dash='dash')
-    ))
-    
-    # Scenario A
-    fig_main.add_trace(go.Scatter(
-        x=scen_a_df['Year'], 
-        y=scen_a_df['Scenario_Unemployment'],
-        mode='lines+markers',
-        name='Scenario A',
-        line=dict(color='#3B82F6', width=4)
-    ))
-    
-    # Scenario B
-    fig_main.add_trace(go.Scatter(
-        x=scen_b_df['Year'], 
-        y=scen_b_df['Scenario_Unemployment'],
-        mode='lines+markers',
-        name='Scenario B',
-        line=dict(color='#EF4444', width=4)
-    ))
-    
-    fig_main.update_layout(
-        template="plotly_white",
-        hovermode="x unified",
-        legend=dict(orientation="h", y=1.1),
-        margin=dict(l=0, r=0, t=0, b=0),
-        height=400
-    )
-    st.plotly_chart(fig_main, use_container_width=True)
-
-    # =========================
-    # 3. Deep Dive Tabs
-    # =========================
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🔥 Sector Heatmap", "🤖 AI Advisor", "⚠️ Risk Analysis", "📅 Story Mode", "💰 Budget & ROI"])
-
-    # --- TAB 1: Sector Heatmap ---
-    with tab1:
-        st.markdown("#### Relative Sector Stress Index (RSSI)")
-        st.write("Identifies which sectors are most vulnerable to the simulated economic shock.")
-        
-        col_h1, col_h2 = st.columns(2)
-        
-        def plot_heatmap(data, title):
-            if "sector_impact" in data:
-                df = pd.DataFrame(data["sector_impact"])
-                fig = px.bar(df, x="Sector", y="Stress_Score", color="Stress_Score",
-                             color_continuous_scale="Reds", title=title,
-                             text="Resilience_Badge",
-                             hover_data=["Resilience_Score"])
-                fig.update_layout(template="plotly_white")
-                return fig
-            return None
-
-        with col_h1:
-            st.plotly_chart(plot_heatmap(scen_a_data, "Scenario A: Sector Stress"), use_container_width=True)
-        with col_h2:
-            st.plotly_chart(plot_heatmap(scen_b_data, "Scenario B: Sector Stress"), use_container_width=True)
-
-    # --- TAB 2: AI Advisor ---
-    with tab2:
-        col_ai_l, col_ai_r = st.columns([1, 3])
-        with col_ai_l:
-            if lottie_robot:
-                st_lottie(lottie_robot, height=200)
-        
-        with col_ai_r:
-            st.markdown("#### 🧠 AI Career & Policy Intelligence")
-            st.info("Rule-based AI analyzes sector shifts to recommend skills and policy interventions.")
-            
-            with st.expander("Scenario A: Strategic Advice", expanded=True):
-                if "career_advice" in scen_a_data:
-                    adv = scen_a_data["career_advice"]
-                    st.write(f"**Insight:** {adv['narrative']}")
-                    st.markdown(f"**🚀 Growth Areas:** `{', '.join(adv['growth_sectors'])}`")
-                    st.markdown(f"**💎 Key Skills:** `{', '.join(adv['recommended_skills'])}`")
-            
-            with st.expander("Scenario B: Strategic Advice", expanded=False):
-                if "career_advice" in scen_b_data:
-                    adv = scen_b_data["career_advice"]
-                    st.write(f"**Insight:** {adv['narrative']}")
-                    st.markdown(f"**🚀 Growth Areas:** `{', '.join(adv['growth_sectors'])}`")
-
-    # --- TAB 3: Risk Analysis ---
-    with tab3:
-        col_r1, col_r2 = st.columns(2)
-        
-        with col_r1:
-            st.subheader("Scenario A Risk Profile")
-            st.metric("Recovery Quality Index (RQI)", idx_a.get("rqi_label", "N/A"))
-            st.metric("Early Warning Signal", idx_a.get("early_warning", "N/A"))
-            
-            # Sensitivity Tool
-            st.markdown("##### 🎛️ Sensitivity Check")
-            sens_val = st.slider("Test Recovery Rate (+/- 10%)", -0.1, 0.1, 0.0, 0.01, key="sens_a")
-            
-            # Recalculate if sensitivity is applied
-            if sens_val != 0:
-                st.caption(f"Re-simulating with adjustment: {sens_val:+}")
-                with st.spinner("Updating Scenario A..."):
-                    scen_a_data = fetch_scenario(si_a, sd_a, rr_a + sens_val, policy_a)
-                    # Update indices for display
-                    idx_a = scen_a_data.get("indices", {})
-                    # Update RQI display
-                    st.metric("New RQI", idx_a.get("rqi_label", "N/A"))
-
-        
-        with col_r2:
-            st.subheader("Scenario B Risk Profile")
-            st.metric("Recovery Quality Index (RQI)", idx_b.get("rqi_label", "N/A"))
-            st.metric("Early Warning Signal", idx_b.get("early_warning", "N/A"))
-
-    # --- TAB 4: Story Mode ---
-    with tab4:
-        st.markdown("#### 📅 Year-by-Year Economic Narrative")
-        
-        col_s1, col_s2 = st.columns(2)
-        
-        def render_story(data, name):
-            st.subheader(name)
-            if "story" in data:
-                for event in data["story"]:
-                    # Modern Timeline HTML
-                    st.markdown(f"""
-                    <div class="timeline-item">
-                        <div class="timeline-year">{event['year']} {event['icon']}</div>
-                        <div>{event['description']}</div>
-                        <div style="font-size: 0.8rem; color: #64748B;">Unemployment: {event['value']}%</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-            else:
-                st.write("No story data.")
-
-        with col_s1:
-            render_story(scen_a_data, "Scenario A Timeline")
-        with col_s2:
-            render_story(scen_b_data, "Scenario B Timeline")
-
-    # --- TAB 5: Budget & ROI ---
-    with tab5:
-        st.markdown("#### 💰 Policy Budget & Impact Estimator")
-        st.info("Hypothetical cost-benefit analysis for decision support.")
-        
-        col_b1, col_b2 = st.columns(2)
-        
-        def calculate_roi(scenario_data, policy_name):
-            # Mock Logic for Budget
-            base_cost = 0
-            if policy_name == "Youth Employment Boost": base_cost = 5000 # Cr
-            elif policy_name == "SME Support Package": base_cost = 12000
-            elif policy_name == "Rural Job Guarantee": base_cost = 15000
-            
-            # Cost scales with shock intensity
-            shock_factor = 1.0 + (scenario_data["indices"].get("shock_intensity", 0.0) * 2)
-            estimated_cost = base_cost * shock_factor
-            
-            # Benefit: "Jobs Saved" (Mock: Delta in peak unemployment * 500M labor force / 100)
-            # This is a rough proxy
-            unemp_delta = max(0, baseline_df['Predicted_Unemployment'].max() - pd.DataFrame(scenario_data["scenario"])['Scenario_Unemployment'].max())
-            jobs_saved = (unemp_delta / 100) * 500000000 # 500 Million Labor Force
-            
-            return estimated_cost, jobs_saved
-
-        with col_b1:
-            st.subheader("Scenario A Investment")
-            if policy_a != "None":
-                cost_a, jobs_a = calculate_roi(scen_a_data, policy_a)
-                st.metric("Estimated Budget", f"₹{cost_a:,.0f} Cr")
-                st.metric("Potential Jobs Saved", f"{jobs_a:,.0f}")
-                if cost_a > 0 and jobs_a > 0:
-                    st.metric("Cost per Job Saved", f"₹{cost_a*10000000/jobs_a:,.0f}")
-            else:
-                st.write("No policy intervention selected.")
-                
-        with col_b2:
-            st.subheader("Scenario B Investment")
-            if policy_b != "None":
-                cost_b, jobs_b = calculate_roi(scen_b_data, policy_b)
-                st.metric("Estimated Budget", f"₹{cost_b:,.0f} Cr")
-                st.metric("Potential Jobs Saved", f"{jobs_b:,.0f}")
-                if cost_b > 0 and jobs_b > 0:
-                    st.metric("Cost per Job Saved", f"₹{cost_b*10000000/jobs_b:,.0f}")
-            else:
-                st.write("No policy intervention selected.")
-
-except Exception as e:
-    st.error(f"⚠️ Simulation Error: {e}")
-    st.warning("Ensure the backend API is running: `uvicorn src.api:app --reload`")
-    if lottie_warning:
-        st_lottie(lottie_warning, height=200)
-
+# ─── Footer ───────────────────────────────────────────────────────────────────
+st.markdown("<br><br>", unsafe_allow_html=True)
+st.markdown("""
+<div style="text-align:center; color:#334155; font-size:0.8rem; padding:1rem 0; border-top:1px solid rgba(255,255,255,0.05);">
+    Built by <strong style="color:#6366f1;">Bhushan Nanavare</strong> · 
+    Unemployment Intelligence Platform · 
+    Data: World Bank Open Data
+</div>
+""", unsafe_allow_html=True)

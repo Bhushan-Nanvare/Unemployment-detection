@@ -42,8 +42,8 @@ class SectorAnalysis:
         
         results = []
         
-        # Scaling factor for RSSI
-        SCALING_FACTOR = 5.0 
+        # Scaling factor for RSSI (Normalized to 0-100)
+        SCALING_FACTOR = 15.0 
         
         for sector, sensitivity in SectorAnalysis.SECTOR_SENSITIVITY.items():
             # --- RSSI Calculation ---
