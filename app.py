@@ -233,6 +233,7 @@ pages = [
     ("💼", "Career Lab", "Skill demand, growth sectors & career path guidance", "pages/4_Career_Lab.py"),
     ("🤖", "AI Insights", "AI-generated narratives & story-mode timeline", "pages/5_AI_Insights.py"),
     ("🔬", "Model Validation", "Backtest accuracy, R² score & reliability metrics", "pages/6_Model_Validation.py"),
+    ("🎯", "Job Risk (AI)", "ML risk score from skills, education, experience & location", "pages/7_Job_Risk_Predictor.py"),
 ]
 
 col_grid = st.columns(3)

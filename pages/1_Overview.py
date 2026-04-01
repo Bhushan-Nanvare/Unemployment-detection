@@ -40,6 +40,7 @@ with st.sidebar:
     st.page_link("pages/4_Career_Lab.py", label="💼 Career Lab")
     st.page_link("pages/5_AI_Insights.py", label="🤖 AI Insights")
     st.page_link("pages/6_Model_Validation.py", label="🔬 Model Validation")
+    st.page_link("pages/7_Job_Risk_Predictor.py", label="🎯 Job Risk (AI)")
 
 # ─── Page hero ─────────────────────────────────────────────────────────────────
 st.markdown("""
