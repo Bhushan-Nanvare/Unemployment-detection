@@ -26,6 +26,7 @@ with st.sidebar:
     st.page_link("pages/4_Career_Lab.py", label="💼 Career Lab")
     st.page_link("pages/6_Model_Validation.py", label="🔬 Model Validation")
     st.page_link("pages/7_Job_Risk_Predictor.py", label="🎯 Job Risk (AI)")
+    st.page_link("pages/8_Job_Market_Pulse.py", label="📡 Market Pulse")
 
 st.markdown("""
 <div class="page-hero">
