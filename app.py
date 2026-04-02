@@ -235,6 +235,7 @@ pages = [
     ("🔬", "Model Validation", "Backtest accuracy, R² score & reliability metrics", "pages/6_Model_Validation.py"),
     ("🎯", "Job Risk (AI)", "ML risk score from skills, education, experience & location", "pages/7_Job_Risk_Predictor.py"),
     ("📡", "Job Market Pulse", "Skill & role demand trends from job postings (CSV)", "pages/8_Job_Market_Pulse.py"),
+    ("🗺️", "Geo Career", "Maps, location quotients & relocation signals from your data", "pages/9_Geo_Career_Advisor.py"),
 ]
 
 col_grid = st.columns(3)

@@ -38,6 +38,7 @@ with st.sidebar:
     st.page_link("pages/5_AI_Insights.py", label="🤖 AI Insights")
     st.page_link("pages/6_Model_Validation.py", label="🔬 Model Validation")
     st.page_link("pages/7_Job_Risk_Predictor.py", label="🎯 Job Risk (AI)")
+    st.page_link("pages/9_Geo_Career_Advisor.py", label="🗺️ Geo Career")
 
 st.markdown("""
 <div class="page-hero">
