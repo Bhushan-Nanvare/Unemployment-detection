@@ -236,6 +236,7 @@ pages = [
     ("🎯", "Job Risk (AI)", "ML risk score from skills, education, experience & location", "pages/7_Job_Risk_Predictor.py"),
     ("📡", "Job Market Pulse", "Skill & role demand trends from job postings (CSV)", "pages/8_Job_Market_Pulse.py"),
     ("🗺️", "Geo Career", "Maps, location quotients & relocation signals from your data", "pages/9_Geo_Career_Advisor.py"),
+    ("📉", "Skill Obsolescence", "Declining vs emerging skills from posting history", "pages/10_Skill_Obsolescence.py"),
 ]
 
 col_grid = st.columns(3)

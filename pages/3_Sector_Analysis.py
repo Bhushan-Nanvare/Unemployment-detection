@@ -154,7 +154,6 @@ with col_radar:
                              tickfont=dict(color="#94a3b8", size=10)),
         ),
         showlegend=True,
-        margin=dict(l=30, r=30, t=20, b=20),
     )
     st.plotly_chart(fig_r, use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
@@ -174,7 +173,6 @@ fig_tree.update_traces(
 )
 fig_tree.update_layout(
     **plotly_dark_layout(height=320),
-    margin=dict(l=0, r=0, t=0, b=0),
     coloraxis_colorbar=dict(tickfont=dict(color="#94a3b8"), title=dict(text="Stress", font=dict(color="#94a3b8"))),
 )
 st.plotly_chart(fig_tree, use_container_width=True)

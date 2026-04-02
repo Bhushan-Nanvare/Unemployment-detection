@@ -10,3 +10,4 @@ scikit-learn
 folium
 geopy
 streamlit-folium
+scipy
